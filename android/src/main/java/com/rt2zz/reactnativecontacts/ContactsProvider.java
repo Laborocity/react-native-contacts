@@ -18,6 +18,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
+
 import static android.provider.ContactsContract.CommonDataKinds.Contactables;
 import static android.provider.ContactsContract.CommonDataKinds.Email;
 import static android.provider.ContactsContract.CommonDataKinds.Organization;
@@ -25,12 +27,15 @@ import static android.provider.ContactsContract.CommonDataKinds.Phone;
 import static android.provider.ContactsContract.CommonDataKinds.StructuredName;
 import static android.provider.ContactsContract.CommonDataKinds.StructuredPostal;
 import static android.provider.ContactsContract.CommonDataKinds.Event;
+
 import android.util.Log;
 
-public class ContactsProvider {
+public class ContactsProvider
+{
     public static final int ID_FOR_PROFILE_CONTACT = -1;
 
-    private static final List<String> JUST_ME_PROJECTION = new ArrayList<String>() {{
+    private static final List<String> JUST_ME_PROJECTION = new ArrayList<String>()
+    {{
         add(ContactsContract.Data.CONTACT_ID);
         add(ContactsContract.Data.LOOKUP_KEY);
         add(ContactsContract.Contacts.Data.MIMETYPE);
@@ -66,21 +71,25 @@ public class ContactsProvider {
         add(Event.TYPE);
     }};
 
-    private static final List<String> FULL_PROJECTION = new ArrayList<String>() {{
+    private static final List<String> FULL_PROJECTION = new ArrayList<String>()
+    {{
         addAll(JUST_ME_PROJECTION);
     }};
 
-    private static final List<String> PHOTO_PROJECTION = new ArrayList<String>() {{
+    private static final List<String> PHOTO_PROJECTION = new ArrayList<String>()
+    {{
         add(Contactables.PHOTO_URI);
     }};
 
     private final ContentResolver contentResolver;
 
-    public ContactsProvider(ContentResolver contentResolver) {
+    public ContactsProvider(ContentResolver contentResolver)
+    {
         this.contentResolver = contentResolver;
     }
 
-    public WritableArray getContactsMatchingString(String searchString) {
+    public WritableArray getContactsMatchingString(String searchString)
+    {
         Map<String, Contact> matchingContacts;
         {
             Cursor cursor = contentResolver.query(
@@ -91,23 +100,29 @@ public class ContactsProvider {
                     null
             );
 
-            try {
+            try
+            {
                 matchingContacts = loadContactsFrom(cursor);
-            } finally {
-                if (cursor != null) {
+            }
+            finally
+            {
+                if (cursor != null)
+                {
                     cursor.close();
                 }
             }
         }
 
         WritableArray contacts = Arguments.createArray();
-        for (Contact contact : matchingContacts.values()) {
+        for (Contact contact : matchingContacts.values())
+        {
             contacts.pushMap(contact.toMap());
         }
         return contacts;
     }
 
-    public WritableArray getContacts() {
+    public WritableArray getContacts()
+    {
         Map<String, Contact> justMe;
         {
             Cursor cursor = contentResolver.query(
@@ -118,10 +133,14 @@ public class ContactsProvider {
                     null
             );
 
-            try {
+            try
+            {
                 justMe = loadContactsFrom(cursor);
-            } finally {
-                if (cursor != null) {
+            }
+            finally
+            {
+                if (cursor != null)
+                {
                     cursor.close();
                 }
             }
@@ -132,25 +151,31 @@ public class ContactsProvider {
             Cursor cursor = contentResolver.query(
                     ContactsContract.Data.CONTENT_URI,
                     FULL_PROJECTION.toArray(new String[FULL_PROJECTION.size()]),
-                    ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR "+ ContactsContract.Data.MIMETYPE + "=?",
+                    ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=? OR " + ContactsContract.Data.MIMETYPE + "=?",
                     new String[]{Email.CONTENT_ITEM_TYPE, Phone.CONTENT_ITEM_TYPE, StructuredName.CONTENT_ITEM_TYPE, Organization.CONTENT_ITEM_TYPE, StructuredPostal.CONTENT_ITEM_TYPE, Event.CONTENT_ITEM_TYPE},
                     null
             );
 
-            try {
+            try
+            {
                 everyoneElse = loadContactsFrom(cursor);
-            } finally {
-                if (cursor != null) {
+            }
+            finally
+            {
+                if (cursor != null)
+                {
                     cursor.close();
                 }
             }
         }
 
         WritableArray contacts = Arguments.createArray();
-        for (Contact contact : justMe.values()) {
+        for (Contact contact : justMe.values())
+        {
             contacts.pushMap(contact.toMap());
         }
-        for (Contact contact : everyoneElse.values()) {
+        for (Contact contact : everyoneElse.values())
+        {
             contacts.pushMap(contact.toMap());
         }
 
@@ -158,22 +183,30 @@ public class ContactsProvider {
     }
 
     @NonNull
-    private Map<String, Contact> loadContactsFrom(Cursor cursor) {
+    private Map<String, Contact> loadContactsFrom(Cursor cursor)
+    {
+
+//        System.out.println("Thisi is a STD Out msg");
+//        System.err.println("Thisi is a ERR Out msg");
 
         Map<String, Contact> map = new LinkedHashMap<>();
 
-        while (cursor != null && cursor.moveToNext()) {
+        while (cursor != null && cursor.moveToNext())
+        {
 
             int columnIndex = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID);
             String contactId;
-            if (columnIndex != -1) {
+            if (columnIndex != -1)
+            {
                 contactId = cursor.getString(columnIndex);
-            } else {
+            } else
+            {
                 //todo - double check this, it may not be necessary any more
                 contactId = String.valueOf(ID_FOR_PROFILE_CONTACT);//no contact id for 'ME' user
             }
 
-            if (!map.containsKey(contactId)) {
+            if (!map.containsKey(contactId))
+            {
                 map.put(contactId, new Contact(contactId));
             }
 
@@ -182,30 +215,37 @@ public class ContactsProvider {
             String mimeType = cursor.getString(cursor.getColumnIndex(ContactsContract.Data.MIMETYPE));
 
             String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-            if (!TextUtils.isEmpty(name) && TextUtils.isEmpty(contact.displayName)) {
+            if (!TextUtils.isEmpty(name) && TextUtils.isEmpty(contact.displayName))
+            {
                 contact.displayName = name;
             }
 
-            if(TextUtils.isEmpty(contact.photoUri)) {
+            if (TextUtils.isEmpty(contact.photoUri))
+            {
                 String rawPhotoURI = cursor.getString(cursor.getColumnIndex(Contactables.PHOTO_URI));
-                if (!TextUtils.isEmpty(rawPhotoURI)) {
+                if (!TextUtils.isEmpty(rawPhotoURI))
+                {
                     contact.photoUri = rawPhotoURI;
                     contact.hasPhoto = true;
                 }
             }
-            if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE)) {
+            if (mimeType.equals(StructuredName.CONTENT_ITEM_TYPE))
+            {
                 contact.givenName = cursor.getString(cursor.getColumnIndex(StructuredName.GIVEN_NAME));
                 contact.middleName = cursor.getString(cursor.getColumnIndex(StructuredName.MIDDLE_NAME));
                 contact.familyName = cursor.getString(cursor.getColumnIndex(StructuredName.FAMILY_NAME));
                 contact.prefix = cursor.getString(cursor.getColumnIndex(StructuredName.PREFIX));
                 contact.suffix = cursor.getString(cursor.getColumnIndex(StructuredName.SUFFIX));
-            } else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE)) {
+            } else if (mimeType.equals(Phone.CONTENT_ITEM_TYPE))
+            {
                 String phoneNumber = cursor.getString(cursor.getColumnIndex(Phone.NUMBER));
                 int type = cursor.getInt(cursor.getColumnIndex(Phone.TYPE));
 
-                if (!TextUtils.isEmpty(phoneNumber)) {
+                if (!TextUtils.isEmpty(phoneNumber))
+                {
                     String label;
-                    switch (type) {
+                    switch (type)
+                    {
                         case Phone.TYPE_HOME:
                             label = "home";
                             break;
@@ -220,13 +260,16 @@ public class ContactsProvider {
                     }
                     contact.phones.add(new Contact.Item(label, phoneNumber));
                 }
-            } else if (mimeType.equals(Email.CONTENT_ITEM_TYPE)) {
+            } else if (mimeType.equals(Email.CONTENT_ITEM_TYPE))
+            {
                 String email = cursor.getString(cursor.getColumnIndex(Email.ADDRESS));
                 int type = cursor.getInt(cursor.getColumnIndex(Email.TYPE));
 
-                if (!TextUtils.isEmpty(email)) {
+                if (!TextUtils.isEmpty(email))
+                {
                     String label;
-                    switch (type) {
+                    switch (type)
+                    {
                         case Email.TYPE_HOME:
                             label = "home";
                             break;
@@ -237,9 +280,11 @@ public class ContactsProvider {
                             label = "mobile";
                             break;
                         case Email.TYPE_CUSTOM:
-                            if (cursor.getString(cursor.getColumnIndex(Email.LABEL)) != null) {
+                            if (cursor.getString(cursor.getColumnIndex(Email.LABEL)) != null)
+                            {
                                 label = cursor.getString(cursor.getColumnIndex(Email.LABEL)).toLowerCase();
-                            } else {
+                            } else
+                            {
                                 label = "";
                             }
                             break;
@@ -248,27 +293,52 @@ public class ContactsProvider {
                     }
                     contact.emails.add(new Contact.Item(label, email));
                 }
-            } else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE)) {
+            } else if (mimeType.equals(Organization.CONTENT_ITEM_TYPE))
+            {
                 contact.company = cursor.getString(cursor.getColumnIndex(Organization.COMPANY));
                 contact.jobTitle = cursor.getString(cursor.getColumnIndex(Organization.TITLE));
                 contact.department = cursor.getString(cursor.getColumnIndex(Organization.DEPARTMENT));
-            } else if (mimeType.equals(StructuredPostal.CONTENT_ITEM_TYPE)) {
+            } else if (mimeType.equals(StructuredPostal.CONTENT_ITEM_TYPE))
+            {
                 contact.postalAddresses.add(new Contact.PostalAddressItem(cursor));
-            } else if (mimeType.equals(Event.CONTENT_ITEM_TYPE)) {
+            } else if (mimeType.equals(Event.CONTENT_ITEM_TYPE))
+            {
                 int eventType = cursor.getInt(cursor.getColumnIndex(Event.TYPE));
-                if (eventType == Event.TYPE_BIRTHDAY) {
+                if (eventType == Event.TYPE_BIRTHDAY)
+                {
                     String birthday = cursor.getString(cursor.getColumnIndex(Event.START_DATE)).replace("--", "");
-                    String[] yearMonthDay = birthday.split("-");
-                    List<String> yearMonthDayList = Arrays.asList(yearMonthDay);
-                    if (yearMonthDayList.size() == 2) {
-                        int month = Integer.parseInt(yearMonthDayList.get(0));
-                        int day = Integer.parseInt(yearMonthDayList.get(1));
-                        contact.birthday = new Contact.Birthday(new Date(0).getYear(), month, day);
-                    } else {
-                        int year = Integer.parseInt(yearMonthDayList.get(0));
-                        int month = Integer.parseInt(yearMonthDayList.get(1));
-                        int day = Integer.parseInt(yearMonthDayList.get(2));
-                        contact.birthday = new Contact.Birthday(year, month, day);
+
+                    if (birthday != null)
+                    {
+                        String[] yearMonthDay = birthday.split("-");
+                        List<String> yearMonthDayList = Arrays.asList(yearMonthDay);
+                        Pattern pattern = Pattern.compile(".*[^0-9].*");
+
+                        if (yearMonthDayList.size() == 2)
+                        {
+                            String mntStr = yearMonthDayList.get(0);
+                            String dayStr = yearMonthDayList.get(1);
+                            if (!pattern.matcher(mntStr).matches() && !pattern.matcher(dayStr).matches())
+                            {
+                                int month = Integer.parseInt(mntStr);
+                                int day = Integer.parseInt(dayStr);
+                                contact.birthday = new Contact.Birthday(new Date(0).getYear(), month, day);
+                            }
+
+                        } else if (yearMonthDayList.size() == 3)
+                        {
+                            String yrStr = yearMonthDayList.get(0);
+                            String mntStr = yearMonthDayList.get(1);
+                            String dayStr = yearMonthDayList.get(2);
+
+                            if (!pattern.matcher(yrStr).matches() && !pattern.matcher(mntStr).matches() && !pattern.matcher(dayStr).matches())
+                            {
+                                int year = Integer.parseInt(yrStr);
+                                int month = Integer.parseInt(mntStr);
+                                int day = Integer.parseInt(dayStr);
+                                contact.birthday = new Contact.Birthday(year, month, day);
+                            }
+                        }
                     }
                 }
             }
@@ -277,7 +347,8 @@ public class ContactsProvider {
         return map;
     }
 
-    public String getPhotoUriFromContactId(String contactId) {
+    public String getPhotoUriFromContactId(String contactId)
+    {
         Cursor cursor = contentResolver.query(
                 ContactsContract.Data.CONTENT_URI,
                 PHOTO_PROJECTION.toArray(new String[PHOTO_PROJECTION.size()]),
@@ -285,22 +356,29 @@ public class ContactsProvider {
                 new String[]{contactId},
                 null
         );
-        try {
-            if (cursor != null && cursor.moveToNext()) {
+        try
+        {
+            if (cursor != null && cursor.moveToNext())
+            {
                 String rawPhotoURI = cursor.getString(cursor.getColumnIndex(Contactables.PHOTO_URI));
-                if (!TextUtils.isEmpty(rawPhotoURI)) {
+                if (!TextUtils.isEmpty(rawPhotoURI))
+                {
                     return rawPhotoURI;
                 }
             }
-        } finally {
-            if (cursor != null) {
+        }
+        finally
+        {
+            if (cursor != null)
+            {
                 cursor.close();
             }
         }
         return null;
     }
 
-    private static class Contact {
+    private static class Contact
+    {
         private String contactId;
         private String displayName;
         private String givenName = "";
@@ -309,8 +387,8 @@ public class ContactsProvider {
         private String prefix = "";
         private String suffix = "";
         private String company = "";
-        private String jobTitle ="";
-        private String department ="";
+        private String jobTitle = "";
+        private String department = "";
         private boolean hasPhoto = false;
         private String photoUri;
         private List<Item> emails = new ArrayList<>();
@@ -319,11 +397,13 @@ public class ContactsProvider {
         private Birthday birthday;
 
 
-        public Contact(String contactId) {
+        public Contact(String contactId)
+        {
             this.contactId = contactId;
         }
 
-        public WritableMap toMap() {
+        public WritableMap toMap()
+        {
             WritableMap contact = Arguments.createMap();
             contact.putString("recordID", contactId);
             contact.putString("givenName", TextUtils.isEmpty(givenName) ? displayName : givenName);
@@ -338,7 +418,8 @@ public class ContactsProvider {
             contact.putString("thumbnailPath", photoUri == null ? "" : photoUri);
 
             WritableArray phoneNumbers = Arguments.createArray();
-            for (Item item : phones) {
+            for (Item item : phones)
+            {
                 WritableMap map = Arguments.createMap();
                 map.putString("number", item.value);
                 map.putString("label", item.label);
@@ -347,7 +428,8 @@ public class ContactsProvider {
             contact.putArray("phoneNumbers", phoneNumbers);
 
             WritableArray emailAddresses = Arguments.createArray();
-            for (Item item : emails) {
+            for (Item item : emails)
+            {
                 WritableMap map = Arguments.createMap();
                 map.putString("email", item.value);
                 map.putString("label", item.label);
@@ -356,13 +438,15 @@ public class ContactsProvider {
             contact.putArray("emailAddresses", emailAddresses);
 
             WritableArray postalAddresses = Arguments.createArray();
-            for (PostalAddressItem item : this.postalAddresses) {
+            for (PostalAddressItem item : this.postalAddresses)
+            {
                 postalAddresses.pushMap(item.map);
             }
             contact.putArray("postalAddresses", postalAddresses);
 
             WritableMap birthdayMap = Arguments.createMap();
-            if (birthday != null) {
+            if (birthday != null)
+            {
                 birthdayMap.putInt("year", birthday.year);
                 birthdayMap.putInt("month", birthday.month);
                 birthdayMap.putInt("day", birthday.day);
@@ -372,32 +456,38 @@ public class ContactsProvider {
             return contact;
         }
 
-        public static class Item {
+        public static class Item
+        {
             public String label;
             public String value;
 
-            public Item(String label, String value) {
+            public Item(String label, String value)
+            {
                 this.label = label;
                 this.value = value;
             }
         }
 
-        public static class Birthday {
+        public static class Birthday
+        {
             public int year = 0;
             public int month = 0;
             public int day = 0;
 
-            public Birthday(int year, int month, int day) {
+            public Birthday(int year, int month, int day)
+            {
                 this.year = year;
                 this.month = month;
                 this.day = day;
             }
         }
 
-        public static class PostalAddressItem {
+        public static class PostalAddressItem
+        {
             public final WritableMap map;
 
-            public PostalAddressItem(Cursor cursor) {
+            public PostalAddressItem(Cursor cursor)
+            {
                 map = Arguments.createMap();
 
                 map.putString("label", getLabel(cursor));
@@ -412,14 +502,17 @@ public class ContactsProvider {
                 putString(cursor, "country", StructuredPostal.COUNTRY);
             }
 
-            private void putString(Cursor cursor, String key, String androidKey) {
+            private void putString(Cursor cursor, String key, String androidKey)
+            {
                 final String value = cursor.getString(cursor.getColumnIndex(androidKey));
                 if (!TextUtils.isEmpty(value))
-                    map.putString(key, value);
+                { map.putString(key, value); }
             }
 
-            static String getLabel(Cursor cursor) {
-                switch (cursor.getInt(cursor.getColumnIndex(StructuredPostal.TYPE))) {
+            static String getLabel(Cursor cursor)
+            {
+                switch (cursor.getInt(cursor.getColumnIndex(StructuredPostal.TYPE)))
+                {
                     case StructuredPostal.TYPE_HOME:
                         return "home";
                     case StructuredPostal.TYPE_WORK:
